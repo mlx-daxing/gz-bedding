@@ -7,14 +7,19 @@ await cp('index.html', 'dist/index.html');
 await cp('styles.css', 'dist/styles.css');
 await cp('app.js', 'dist/app.js');
 await cp('public', 'dist/public', { recursive: true });
+await cp('assets/products', 'dist/assets/products', { recursive: true });
 await cp('.openai/hosting.json', 'dist/.openai/hosting.json');
 const [html, css, js] = await Promise.all([
   readFile('index.html', 'utf8'),
   readFile('styles.css', 'utf8'),
   readFile('app.js', 'utf8')
 ]);
-const photoFiles = await readdir('public/assets/water');
-const photoEntries = await Promise.all(photoFiles.map(async file => [file, (await readFile(`public/assets/water/${file}`)).toString('base64')]));
+const waterFiles = await readdir('public/assets/water');
+const productFiles = await readdir('assets/products');
+const photoEntries = await Promise.all([
+  ...waterFiles.map(async file => [`water/${file}`, (await readFile(`public/assets/water/${file}`)).toString('base64')]),
+  ...productFiles.map(async file => [`products/${file}`, (await readFile(`assets/products/${file}`)).toString('base64')])
+]);
 await writeFile('dist/server/index.js', `
 const HTML = ${JSON.stringify(html)};
 const CSS = ${JSON.stringify(css)};
@@ -26,8 +31,8 @@ export default {
     if (url.pathname === '/' || url.pathname === '/index.html') return new Response(HTML, { headers: { 'content-type': 'text/html; charset=UTF-8' } });
     if (url.pathname === '/styles.css') return new Response(CSS, { headers: { 'content-type': 'text/css; charset=UTF-8' } });
     if (url.pathname === '/app.js') return new Response(JS, { headers: { 'content-type': 'application/javascript; charset=UTF-8' } });
-    if (url.pathname.startsWith('/assets/water/')) {
-      const file = decodeURIComponent(url.pathname.split('/').pop());
+    if (url.pathname.startsWith('/assets/water/') || url.pathname.startsWith('/assets/products/')) {
+      const file = decodeURIComponent(url.pathname.replace('/assets/', ''));
       const encoded = PHOTOS[file];
       if (encoded) {
         const bytes = Uint8Array.from(atob(encoded), c => c.charCodeAt(0));
