@@ -1,0 +1,11 @@
+{
+  "name": "gz-bedding-2026",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "vite": "^7.0.0"
+  }
+}
