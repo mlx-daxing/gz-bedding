@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>广职新生床品预订</title>
+  <meta name="description" content="广职新生床品预订：提前选款，支付定金，到校配送。">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="site">
+    <header class="header">
+      <button class="brand" onclick="showPage('home')"><strong>GZ</strong><span>广职新生床品</span></button>
+      <div class="header-actions"><button class="cart-button" onclick="showCheckout()">购物清单 <em id="cartCount">0</em></button><button class="partner-button" onclick="showPage('partner')">代理中心</button></div>
+    </header>
+
+    <main>
+      <section id="home" class="page active">
+        <div class="hero">
+          <div><p class="label light">2026 新生入学季</p><h1>开学第一晚<br>睡得舒服一点</h1><p>床品提前选，到校后统一配送至宿舍。</p><button class="gold-button" onclick="showCatalog('套餐')">选择新生套餐 →</button></div>
+          <div class="bed-art"><i></i><b></b><span>☁</span></div>
+          <small>学生专享价 · 定金锁定 · 到校补尾款</small>
+        </div>
+        <div class="trust"><div><b>01</b><span>提前预订<br>到校不用抢</span></div><div><b>02</b><span>确认花色<br>配送到宿舍</span></div><div><b>03</b><span>定金锁定<br>尾款到校付</span></div></div>
+        <section class="section"><div class="section-title"><div><p class="label">BEDDING SETS</p><h2>新生热门套餐</h2></div><button onclick="showCatalog('套餐')">全部套餐 →</button></div><div id="featuredProducts" class="cards"></div></section>
+        <section class="section white"><div class="section-title"><div><p class="label">MIX & MATCH</p><h2>按需单独选购</h2></div><button onclick="showCatalog('单卖')">全部单品 →</button></div><div class="categories"><button onclick="showCatalog('单卖')"><i>☁</i>枕芯</button><button onclick="showCatalog('单卖')"><i>▧</i>被芯</button><button onclick="showCatalog('单卖')"><i>⌁</i>三件套</button><button onclick="showCatalog('单卖')"><i>▤</i>床垫</button></div></section>
+        <aside class="notice"><b>✓</b><div><strong>预订说明</strong><p>付款前负责人会确认花色、宿舍和套餐清单。产品实物、花色及材质标签以确认清单为准。</p></div></aside>
+      </section>
+
+      <section id="catalog" class="page"><div class="page-head"><button class="back" onclick="showPage('home')">←</button><div><p class="label">PRODUCT CATALOG</p><h2 id="catalogTitle">全部床品</h2></div></div><div class="filters"><button data-type="全部" onclick="showCatalog('全部')">全部</button><button data-type="套餐" onclick="showCatalog('套餐')">套餐</button><button data-type="单卖" onclick="showCatalog('单卖')">单卖</button></div><div id="catalogProducts" class="catalog-cards"></div></section>
+
+      <section id="detail" class="page"><button class="detail-back" onclick="showCatalog(currentFilter)">← 返回选购</button><div id="detailProduct"></div></section>
+
+      <section id="checkout" class="page pale"><div class="page-head"><button class="back" onclick="showPage('home')">←</button><div><p class="label">CHECKOUT</p><h2>填写预订信息</h2></div></div><div id="cartItems" class="cart-items"></div><form class="order-form" onsubmit="submitOrder(event)"><h3>收货信息</h3><label>姓名<input required id="name" placeholder="请填写真实姓名"></label><label>手机号码<input required id="phone" pattern="1[3-9][0-9]{9}" placeholder="用于负责人联系"></label><label>宿舍楼<input required id="building" placeholder="例如：北区 12 栋"></label><label>房间号<input required id="room" placeholder="例如：508"></label><label>备注（选填）<textarea placeholder="花色偏好、特殊需求等"></textarea></label><button class="primary" type="submit">去支付定金 <span id="depositTotal">¥0</span></button></form></section>
+
+      <section id="payment" class="page payment"><div class="success">✓</div><p class="label">ORDER SUBMITTED</p><h2>预订信息已提交</h2><p>请扫码支付定金，并上传付款截图。负责人核验后会联系你确认花色和配送信息。</p><div class="pay-card"><div><span>本次应付定金</span><b id="paymentAmount">¥0</b></div><div class="fake-qr"><i></i><i></i><i></i><strong>微信<br>收款码</strong></div><small>上线前请在后台替换为你的真实收款码</small></div><label class="upload"><input type="file" accept="image/*" onchange="receiptChosen(this)"><span id="receiptText">＋ 上传付款截图</span></label><button class="primary" type="button" onclick="confirmPayment()">我已支付，提交凭证</button></section>
+
+      <section id="admin" class="page pale admin"><div class="admin-head"><div><p class="label">ADMIN DASHBOARD</p><h2>负责人后台</h2><span>2026 招新床品预订</span></div><b>管</b></div><div class="metrics"><div><small>待核验定金</small><strong>12</strong><em>+3 今日</em></div><div><small>预订总金额</small><strong>¥12,680</strong><em>本周期</em></div><div><small>完成订单</small><strong>28</strong><em>本周期</em></div></div><div class="tabs"><button class="tab active" onclick="showAdmin('orders',this)">订单核验</button><button class="tab" onclick="showAdmin('goods',this)">商品管理</button><button class="tab" onclick="showAdmin('agents',this)">代理管理</button></div><div id="adminPanel"></div></section>
+
+      <section id="partner" class="page partner"><div class="partner-hero"><button onclick="showPage('home')">← 商城</button><p class="label light">PARTNER CENTER</p><h2>你好，王同学</h2><span>二级代理 · 归属股东：陈同学</span><button class="gold-button" onclick="copyLink()">复制我的专属链接</button></div><div class="tier-card"><div><small>本周期累计销量</small><b>18 <i>件/套</i></b></div><div><small>当前阶梯</small><strong>10–19 件/套</strong><em>再成交 2 件，进入下一档</em></div><hr><div class="progress"><i></i></div></div><div class="earnings"><div><small>暂估收益</small><strong>¥2,538</strong><span>按当前阶梯</span></div><div><small>待确认收益</small><strong>¥682</strong><span>3 笔待尾款</span></div></div><section class="agent-section"><div class="section-title"><h3>推广工具</h3><button onclick="copyLink()">复制链接</button></div><div class="referral"><div class="tiny-qr">▦</div><div><b>专属推广二维码</b><p>新生通过你的链接下单，订单会自动归属到你。</p></div></div></section><section class="agent-section"><div class="section-title"><h3>本周期阶梯规则</h3></div><div class="tier-row"><span>1–9 件/套</span><b>5–9 同行价</b></div><div class="tier-row selected"><span>10–19 件/套</span><b>10–19 同行价</b></div><div class="tier-row"><span>20–29 件/套</span><b>20–29 同行价</b></div><div class="tier-row"><span>30+ 件/套</span><b>30+ 同行价</b></div></section></section>
+    </main>
+    <nav><button data-nav="home" onclick="showPage('home')">⌂<span>商城</span></button><button data-nav="catalog" onclick="showCatalog('全部')">▦<span>选购</span></button><button data-nav="partner" onclick="showPage('partner')">◉<span>代理中心</span></button><button data-nav="admin" onclick="showPage('admin')">▤<span>管理后台</span></button></nav>
+  </div><div id="toast"></div><script src="app.js"></script>
+</body>
+</html>
