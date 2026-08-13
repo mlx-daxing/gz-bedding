@@ -6,6 +6,7 @@
   <title>广职新生床品预订</title>
   <meta name="description" content="广职新生床品预订：提前选款，支付定金，到校配送。">
   <link rel="stylesheet" href="styles.css">
+  <style>.payment-qr{display:block;width:min(100%,300px);margin:19px auto 9px;border-radius:6px}</style>
 </head>
 <body>
   <div class="site">
@@ -33,7 +34,7 @@
 
       <section id="checkout" class="page pale"><div class="page-head"><button class="back" onclick="showPage('home')">←</button><div><p class="label">CHECKOUT</p><h2>填写预订信息</h2></div></div><div id="cartItems" class="cart-items"></div><form class="order-form" onsubmit="submitOrder(event)"><h3>收货信息</h3><label>姓名<input required id="name" placeholder="请填写真实姓名"></label><label>手机号码<input required id="phone" pattern="1[3-9][0-9]{9}" placeholder="用于负责人联系"></label><label>宿舍楼<input required id="building" placeholder="例如：北区 12 栋"></label><label>房间号<input required id="room" placeholder="例如：508"></label><label>备注（选填）<textarea id="note" placeholder="花色偏好、特殊需求等"></textarea></label><button class="primary" type="submit">去支付定金 <span id="depositTotal">¥0</span></button></form></section>
 
-      <section id="payment" class="page payment"><div class="success">✓</div><p class="label">ORDER SUBMITTED</p><h2>预订信息已提交</h2><p>请扫码支付定金，并上传付款截图。负责人核验后会联系你确认花色和配送信息。</p><div class="pay-card"><div><span>本次应付定金</span><b id="paymentAmount">¥0</b></div><div class="fake-qr"><i></i><i></i><i></i><strong>微信<br>收款码</strong></div><small>上线前请在后台替换为你的真实收款码</small></div><label class="upload"><input type="file" accept="image/*" onchange="receiptChosen(this)"><span id="receiptText">＋ 上传付款截图</span></label><button class="primary" type="button" onclick="confirmPayment()">我已支付，提交凭证</button></section>
+      <section id="payment" class="page payment"><div class="success">✓</div><p class="label">ORDER SUBMITTED</p><h2>预订信息已提交</h2><p>请使用支付宝扫码支付定金，并上传付款截图。负责人核验后会联系你确认花色和配送信息。</p><div class="pay-card"><div><span>本次应付定金</span><b id="paymentAmount">¥0</b></div><img class="payment-qr" src="assets/payment/alipay-collection.jpg" alt="支付宝收款码"><small>支付宝扫码付款 · 付款金额以本次应付定金为准</small></div><label class="upload"><input type="file" accept="image/*" onchange="receiptChosen(this)"><span id="receiptText">＋ 上传付款截图</span></label><button class="primary" type="button" onclick="confirmPayment()">我已支付，提交凭证</button></section>
 
       <section id="admin" class="page pale admin"><div class="admin-head"><div><p class="label">ADMIN DASHBOARD</p><h2>负责人后台</h2><span>2026 招新床品预订</span></div><b>管</b></div><div class="metrics"><div><small>待核验定金</small><strong>12</strong><em>+3 今日</em></div><div><small>预订总金额</small><strong>¥12,680</strong><em>本周期</em></div><div><small>完成订单</small><strong>28</strong><em>本周期</em></div></div><div class="tabs"><button class="tab active" onclick="showAdmin('orders',this)">订单核验</button><button class="tab" onclick="showAdmin('goods',this)">商品管理</button><button class="tab" onclick="showAdmin('agents',this)">代理管理</button></div><div id="adminPanel"></div></section>
 
