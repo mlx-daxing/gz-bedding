@@ -1,6 +1,224 @@
 -- GZ Bedding database recovery. Run this file once after schema.sql stopped at submit_order.
 -- This file deliberately uses small, independently valid statements.
 
+create extension if not exists pgcrypto;
+
+do $bootstrap$
+begin
+  create type public.profile_role as enum ('admin', 'agent');
+exception when duplicate_object then null;
+end;
+$bootstrap$;
+do $bootstrap$
+begin
+  create type public.agent_role as enum ('shareholder', 'secondary_agent');
+exception when duplicate_object then null;
+end;
+$bootstrap$;
+do $bootstrap$
+begin
+  create type public.agent_status as enum ('pending', 'active', 'disabled', 'rejected');
+exception when duplicate_object then null;
+end;
+$bootstrap$;
+do $bootstrap$
+begin
+  create type public.product_kind as enum ('package', 'single');
+exception when duplicate_object then null;
+end;
+$bootstrap$;
+do $bootstrap$
+begin
+  create type public.order_status as enum ('awaiting_receipt', 'deposit_verified', 'awaiting_balance', 'paid', 'refunded', 'cancelled');
+exception when duplicate_object then null;
+end;
+$bootstrap$;
+
+create table if not exists public.profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  email text not null,
+  display_name text,
+  role public.profile_role not null default 'agent',
+  created_at timestamptz not null default now()
+);
+create table if not exists public.settlement_periods (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  starts_on date not null,
+  ends_on date not null,
+  status text not null default 'open' check (status in ('open', 'closed')),
+  created_at timestamptz not null default now(),
+  check (ends_on >= starts_on)
+);
+create table if not exists public.agents (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid unique references public.profiles(id) on delete set null,
+  name text not null,
+  phone text,
+  wechat text,
+  role public.agent_role not null,
+  status public.agent_status not null default 'pending',
+  shareholder_id uuid references public.agents(id) on delete restrict,
+  promotion_code text unique,
+  notes text,
+  approved_at timestamptz,
+  created_at timestamptz not null default now(),
+  check ((role = 'shareholder' and shareholder_id is null) or (role = 'secondary_agent' and shareholder_id is not null))
+);
+create table if not exists public.products (
+  id text primary key,
+  kind public.product_kind not null,
+  name text not null,
+  student_price numeric(10,2) not null check (student_price >= 0),
+  deposit numeric(10,2) not null check (deposit >= 0),
+  factory_cost numeric(10,2) not null check (factory_cost >= 0),
+  tier_5_9 numeric(10,2) not null,
+  tier_10_19 numeric(10,2) not null,
+  tier_20_29 numeric(10,2) not null,
+  tier_30_plus numeric(10,2) not null,
+  active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+create table if not exists public.orders (
+  id uuid primary key default gen_random_uuid(),
+  order_no text unique not null default ('GZ' || to_char(now(), 'YYYYMMDD') || upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 6))),
+  customer_token uuid not null default gen_random_uuid(),
+  customer_name text not null,
+  phone text not null,
+  building text not null,
+  room text not null,
+  note text,
+  promotion_code text,
+  promotion_agent_id uuid references public.agents(id) on delete set null,
+  shareholder_id uuid references public.agents(id) on delete set null,
+  settlement_period_id uuid references public.settlement_periods(id) on delete set null,
+  status public.order_status not null default 'awaiting_receipt',
+  receipt_path text,
+  deposit_total numeric(10,2) not null default 0,
+  retail_total numeric(10,2) not null default 0,
+  balance_due numeric(10,2) not null default 0,
+  paid_at timestamptz,
+  refund_amount numeric(10,2),
+  refund_reason text,
+  refunded_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create table if not exists public.order_items (
+  id uuid primary key default gen_random_uuid(),
+  order_id uuid not null references public.orders(id) on delete cascade,
+  product_id text not null references public.products(id),
+  quantity integer not null check (quantity > 0),
+  style text,
+  student_price numeric(10,2) not null,
+  factory_cost numeric(10,2) not null,
+  final_tier_price numeric(10,2),
+  tier_label text,
+  secondary_profit numeric(10,2) not null default 0,
+  shareholder_profit numeric(10,2) not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists orders_status_idx on public.orders(status);
+create index if not exists orders_agent_idx on public.orders(promotion_agent_id);
+create index if not exists items_order_idx on public.order_items(order_id);
+
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $fn$ select exists (select 1 from public.profiles where id = auth.uid() and role = 'admin') $fn$;
+
+create or replace function public.make_promotion_code()
+returns text
+language plpgsql
+volatile
+set search_path = public
+as $fn$
+declare new_code text;
+begin
+  loop
+    new_code := 'gz' || lower(substr(replace(gen_random_uuid()::text, '-', ''), 1, 10));
+    exit when not exists (select 1 from public.agents where promotion_code = new_code);
+  end loop;
+  return new_code;
+end;
+$fn$;
+
+create or replace function public.set_order_attribution()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $fn$
+declare active_agent public.agents%rowtype;
+begin
+  if new.promotion_code is not null then
+    select * into active_agent from public.agents
+    where promotion_code = new.promotion_code and status = 'active';
+    if found then
+      new.promotion_agent_id := active_agent.id;
+      new.shareholder_id := case when active_agent.role = 'shareholder' then active_agent.id else active_agent.shareholder_id end;
+    end if;
+  end if;
+  new.updated_at := now();
+  return new;
+end;
+$fn$;
+
+create or replace function public.snapshot_order_item()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $fn$
+declare selected_product public.products%rowtype;
+begin
+  select * into selected_product from public.products where id = new.product_id and active = true;
+  if not found then raise exception 'Product is unavailable'; end if;
+  new.student_price := selected_product.student_price;
+  new.factory_cost := selected_product.factory_cost;
+  return new;
+end;
+$fn$;
+
+create or replace function public.refresh_order_totals(target_order uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $fn$
+begin
+  update public.orders as o set
+    retail_total = coalesce((select sum(oi.student_price * oi.quantity) from public.order_items as oi where oi.order_id = target_order), 0),
+    deposit_total = coalesce((select sum(p.deposit * oi.quantity) from public.order_items as oi join public.products as p on p.id = oi.product_id where oi.order_id = target_order), 0),
+    updated_at = now()
+  where o.id = target_order;
+  update public.orders set balance_due = greatest(retail_total - deposit_total, 0) where id = target_order;
+end;
+$fn$;
+
+create or replace function public.after_item_change()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $fn$
+begin
+  perform public.refresh_order_totals(coalesce(new.order_id, old.order_id));
+  return coalesce(new, old);
+end;
+$fn$;
+
+drop trigger if exists set_order_attribution_before on public.orders;
+create trigger set_order_attribution_before before insert or update of promotion_code on public.orders for each row execute procedure public.set_order_attribution();
+drop trigger if exists snapshot_order_item_before on public.order_items;
+create trigger snapshot_order_item_before before insert on public.order_items for each row execute procedure public.snapshot_order_item();
+drop trigger if exists refresh_totals_after_item on public.order_items;
+create trigger refresh_totals_after_item after insert or update or delete on public.order_items for each row execute procedure public.after_item_change();
+
 create or replace function public.submit_order(
   in_customer_name text,
   in_phone text,
@@ -108,6 +326,10 @@ begin
   return new;
 end;
 $fn$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created after insert on auth.users
+for each row execute procedure public.handle_new_user();
 
 create or replace function public.attach_receipt(in_order_id uuid, in_token uuid, in_path text)
 returns void
