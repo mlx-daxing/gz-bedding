@@ -11,7 +11,7 @@
   <div class="site">
     <header class="header">
       <button class="brand" onclick="showPage('home')"><strong>GZ</strong><span>广职新生床品</span></button>
-      <div class="header-actions"><button class="cart-button" onclick="showCheckout()">购物清单 <em id="cartCount">0</em></button><button class="partner-button" onclick="showPage('partner')">代理中心</button></div>
+      <div class="header-actions"><button class="cart-button" onclick="showCheckout()">购物清单 <em id="cartCount">0</em></button><a class="partner-button" href="agent/">代理申请</a></div>
     </header>
 
     <main>
@@ -31,7 +31,7 @@
 
       <section id="detail" class="page"><button class="detail-back" onclick="showCatalog(currentFilter)">← 返回选购</button><div id="detailProduct"></div></section>
 
-      <section id="checkout" class="page pale"><div class="page-head"><button class="back" onclick="showPage('home')">←</button><div><p class="label">CHECKOUT</p><h2>填写预订信息</h2></div></div><div id="cartItems" class="cart-items"></div><form class="order-form" onsubmit="submitOrder(event)"><h3>收货信息</h3><label>姓名<input required id="name" placeholder="请填写真实姓名"></label><label>手机号码<input required id="phone" pattern="1[3-9][0-9]{9}" placeholder="用于负责人联系"></label><label>宿舍楼<input required id="building" placeholder="例如：北区 12 栋"></label><label>房间号<input required id="room" placeholder="例如：508"></label><label>备注（选填）<textarea placeholder="花色偏好、特殊需求等"></textarea></label><button class="primary" type="submit">去支付定金 <span id="depositTotal">¥0</span></button></form></section>
+      <section id="checkout" class="page pale"><div class="page-head"><button class="back" onclick="showPage('home')">←</button><div><p class="label">CHECKOUT</p><h2>填写预订信息</h2></div></div><div id="cartItems" class="cart-items"></div><form class="order-form" onsubmit="submitOrder(event)"><h3>收货信息</h3><label>姓名<input required id="name" placeholder="请填写真实姓名"></label><label>手机号码<input required id="phone" pattern="1[3-9][0-9]{9}" placeholder="用于负责人联系"></label><label>宿舍楼<input required id="building" placeholder="例如：北区 12 栋"></label><label>房间号<input required id="room" placeholder="例如：508"></label><label>备注（选填）<textarea id="note" placeholder="花色偏好、特殊需求等"></textarea></label><button class="primary" type="submit">去支付定金 <span id="depositTotal">¥0</span></button></form></section>
 
       <section id="payment" class="page payment"><div class="success">✓</div><p class="label">ORDER SUBMITTED</p><h2>预订信息已提交</h2><p>请扫码支付定金，并上传付款截图。负责人核验后会联系你确认花色和配送信息。</p><div class="pay-card"><div><span>本次应付定金</span><b id="paymentAmount">¥0</b></div><div class="fake-qr"><i></i><i></i><i></i><strong>微信<br>收款码</strong></div><small>上线前请在后台替换为你的真实收款码</small></div><label class="upload"><input type="file" accept="image/*" onchange="receiptChosen(this)"><span id="receiptText">＋ 上传付款截图</span></label><button class="primary" type="button" onclick="confirmPayment()">我已支付，提交凭证</button></section>
 
@@ -39,7 +39,7 @@
 
       <section id="partner" class="page partner"><div class="partner-hero"><button onclick="showPage('home')">← 商城</button><p class="label light">PARTNER CENTER</p><h2>你好，王同学</h2><span>二级代理 · 归属股东：陈同学</span><button class="gold-button" onclick="copyLink()">复制我的专属链接</button></div><div class="tier-card"><div><small>本周期累计销量</small><b>18 <i>件/套</i></b></div><div><small>当前阶梯</small><strong>10–19 件/套</strong><em>再成交 2 件，进入下一档</em></div><hr><div class="progress"><i></i></div></div><div class="earnings"><div><small>暂估收益</small><strong>¥2,538</strong><span>按当前阶梯</span></div><div><small>待确认收益</small><strong>¥682</strong><span>3 笔待尾款</span></div></div><section class="agent-section"><div class="section-title"><h3>推广工具</h3><button onclick="copyLink()">复制链接</button></div><div class="referral"><div class="tiny-qr">▦</div><div><b>专属推广二维码</b><p>新生通过你的链接下单，订单会自动归属到你。</p></div></div></section><section class="agent-section"><div class="section-title"><h3>本周期阶梯规则</h3></div><div class="tier-row"><span>1–9 件/套</span><b>5–9 同行价</b></div><div class="tier-row selected"><span>10–19 件/套</span><b>10–19 同行价</b></div><div class="tier-row"><span>20–29 件/套</span><b>20–29 同行价</b></div><div class="tier-row"><span>30+ 件/套</span><b>30+ 同行价</b></div></section></section>
     </main>
-    <nav><button data-nav="home" onclick="showPage('home')">⌂<span>商城</span></button><button data-nav="catalog" onclick="showCatalog('全部')">▦<span>选购</span></button><button data-nav="partner" onclick="showPage('partner')">◉<span>代理中心</span></button><button data-nav="admin" onclick="showPage('admin')">▤<span>管理后台</span></button></nav>
-  </div><div id="toast"></div><script src="app.js"></script>
+    <nav><button data-nav="home" onclick="showPage('home')">⌂<span>商城</span></button><button data-nav="catalog" onclick="showCatalog('全部')">▦<span>选购</span></button><a href="agent/">◉<span>代理申请</span></a></nav>
+  </div><div id="toast"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="app.js"></script>
 </body>
 </html>
