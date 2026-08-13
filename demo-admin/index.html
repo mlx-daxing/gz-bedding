@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>广职床品演示后台</title>
+  <link rel="stylesheet" href="../admin/style.css">
+  <style>.button-link{display:inline-block;text-decoration:none}</style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <div>
+        <p class="eyebrow">GZ BEDDING · DEMO DASHBOARD</p>
+        <h1>广职床品管理后台</h1>
+        <span>演示模式：可查看完整管理流程，数据不会保存或影响正式订单。</span>
+      </div>
+      <a class="secondary button-link" href="../">学生商城</a>
+    </header>
+    <div id="summary" class="summary"></div>
+    <nav>
+      <button class="active" data-tab="shareholders">股东总览</button>
+      <button data-tab="agents">代理审核</button>
+      <button data-tab="orders">订单与退款</button>
+      <button data-tab="settings">结算周期</button>
+    </nav>
+    <section id="panel"></section>
+  </main>
+  <div id="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
